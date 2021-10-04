@@ -155,7 +155,8 @@ class TestApp(unittest.TestCase):
   def test_lambda_handler_cleanup_no_buckets_no_stacks(self, delete_bucket_mock,
                                     get_buckets_mock, get_deleted_stacks_mock):
     """
-    This tests that AWS list stacks returns no stacks
+    This verifies the case where there are no deleted CFN stacks associated with
+    S3 buckets in AWS therefore no bucket deletion is required.
     """
 
     get_deleted_stacks_mock.return_value = []
@@ -168,10 +169,12 @@ class TestApp(unittest.TestCase):
   @patch('sc_bucket_cleanup.app._get_deleted_stacks')
   @patch('sc_bucket_cleanup.app._get_buckets')
   @patch('sc_bucket_cleanup.app._delete_bucket')
-  def test_lambda_handler_cleanup_no_buckets_no_matching_buckets(self, delete_bucket_mock,
+  def test_lambda_handler_cleanup_no_matching_buckets(self, delete_bucket_mock,
                                     get_buckets_mock, get_deleted_stacks_mock):
     """
-    This tests that AWS list stacks returns no stacks
+    This test the case where there are deleted CFN stacks associated to S3 buckets
+    however there are no actual S3 resources in AWS that match the deleted stack.
+    Therefore no bucket deletion is required.
     """
     get_deleted_stacks_response = {
       'StackSummaries': [
@@ -214,7 +217,9 @@ class TestApp(unittest.TestCase):
   def test_lambda_handler_cleanup_multiple_buckets(self, delete_bucket_mock,
                                     get_buckets_mock, get_deleted_stacks_mock):
     """
-    This tests that AWS list stacks returns no stacks
+    This test the case where there are deleted CFN stacks associated to S3 buckets
+    and there are S3 bucket resources in AWS that match the deleted stack.
+    Therefore bucket deletions are required.
     """
     get_deleted_stacks_response = {
       'StackSummaries': [

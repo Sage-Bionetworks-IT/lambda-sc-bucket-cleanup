@@ -1,5 +1,5 @@
 # lambda-sc-bucket-cleanup
-An application to clean up S3 buckets after it has been terminated from the Service Catalog.
+An application to clean up an S3 bucket after it has been terminated from the Service Catalog.
 
 We allow self service provisioning of S3 buckets in our AWS Service Catalog.  We have configured the SC to retain the bucket when users terminate an S3 bucket product from the Service catalog.  This means that the S3 bucket SC product will be removed however the S3 bucket resource remains in the account.  The buckets are orphaned from our Service Catalog which essentially puts them into an `archived` state.  The purpose of this app is to delete the archived buckets along with all of the data in the bucket after a certain number of days (archived period) after it's been archived. This lambda does not support cleaning up buckets with versioning enabled.
 

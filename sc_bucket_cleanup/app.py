@@ -7,7 +7,7 @@ from datetime import datetime, timedelta, timezone
 
 logging.basicConfig(level=logging.INFO)
 
-MAX_DAYS_FROM_DELETION = 90
+MAX_RETENTION_PERIOD_DAYS = 90
 
 def _get_s3_client():
   return boto3.client('s3')
@@ -57,34 +57,34 @@ def _get_purge_date(days_deleted):
   """
   Get the date used to determine whether an AWS resources should be removed.  We
   inspect any cloudformation stack that was deleted before this date and to see what
-  resource it provisioned.  If that resource still exist in AWS it will be deleted.
+  resource it provisioned.  If that resource still exists in AWS it will be deleted.
   """
   return datetime.now(timezone.utc) - timedelta(days=days_deleted)
 
-def _get_deleted_stacks(days_from_deletion):
+def _get_deleted_stacks(retention_period_days):
   """
   Get all the deleted Cloudformation stacks that were deployed by the Service
   Catalog to provision S3 buckets.
-  :param days_from_deletion: The number of days, from today, that the stack was deleted.
+  :param retention_period_days: The number of days to retain the stack before deletion..
     Cloudformation will retain stack info for only 90 days after it has been deleted.
     https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/cloudformation.html#CloudFormation.Client.list_stacks
   :return: A modified list of Cloudformation stacks summaries that includes
            an associated resource that the stack provisioned.
   """
-  if days_from_deletion >= MAX_DAYS_FROM_DELETION:
+  if retention_period_days >= MAX_RETENTION_PERIOD_DAYS:
     logging.info(f'Cloudformation will retain stack info for only 90 days '
-                 f'after it has been deleted. Resetting days_from_deletion to 30' )
-    days_from_deletion = MAX_DAYS_FROM_DELETION
+                 f'after it has been deleted. Resetting retention_period_days to 30' )
+    retention_period_days = MAX_RETENTION_PERIOD_DAYS
 
   sc_stacks = []
-  purge_date = _get_purge_date(days_from_deletion)
+  latest_purge_date = _get_purge_date(retention_period_days)
   stack_summaries = _get_stack_summaries(['DELETE_COMPLETE'])
   for stack_summary in stack_summaries:
     stack_name = stack_summary['StackName']
     stack_id = stack_summary['StackId']
 
     if "DeletionTime" in stack_summary and \
-        stack_summary['DeletionTime'] < purge_date and \
+        stack_summary['DeletionTime'] < latest_purge_date and \
         stack_name.startswith("SC-") and \
         "s3" in stack_summary['TemplateDescription'].lower():
 
