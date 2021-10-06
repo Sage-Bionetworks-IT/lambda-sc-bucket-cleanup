@@ -57,7 +57,7 @@ def _get_purge_date(days_deleted):
   inspect any cloudformation stack that was deleted before this date and to see what
   resource it provisioned.  If that resource still exists in AWS it will be deleted.
   """
-  return datetime.now(timezone.utc) - timedelta(days=days_deleted)
+  return datetime.now(timezone.utc) - timedelta(days=int(days_deleted))
 
 def _get_deleted_stacks(retention_period_days):
   """
