@@ -7,8 +7,6 @@ from datetime import datetime, timedelta, timezone
 
 logging.basicConfig(level=logging.INFO)
 
-MAX_RETENTION_PERIOD_DAYS = 90
-
 def _get_s3_client():
   return boto3.client('s3')
 
@@ -71,11 +69,6 @@ def _get_deleted_stacks(retention_period_days):
   :return: A modified list of Cloudformation stacks summaries that includes
            an associated resource that the stack provisioned.
   """
-  if retention_period_days >= MAX_RETENTION_PERIOD_DAYS:
-    logging.info(f'Cloudformation will retain stack info for only 90 days '
-                 f'after it has been deleted. Resetting retention_period_days to 30' )
-    retention_period_days = MAX_RETENTION_PERIOD_DAYS
-
   sc_stacks = []
   latest_purge_date = _get_purge_date(retention_period_days)
   stack_summaries = _get_stack_summaries(['DELETE_COMPLETE'])
