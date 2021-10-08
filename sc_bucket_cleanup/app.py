@@ -5,7 +5,8 @@ import os
 from botocore.exceptions import ClientError
 from datetime import datetime, timedelta, timezone
 
-logging.basicConfig(level=logging.INFO)
+log = logging.getLogger(__name__)
+log.setLevel(logging.INFO)
 
 def _get_s3_client():
   return boto3.client('s3')
@@ -20,7 +21,7 @@ def _get_env_var_value(env_var):
   """
   value = os.getenv(env_var)
   if not value:
-    logging.warning(f'cannot get environment variable: {env_var}')
+    log.warning(f'cannot get environment variable: {env_var}')
 
   return value
 
@@ -103,18 +104,18 @@ def _delete_bucket(bucket_name):
     bucket.objects.all().delete()
     bucket.delete()
   except ClientError as error:
-    logging.warning(f'failed to delete bucket: {bucket_name}')
+    log.warning(f'failed to delete bucket: {bucket_name}')
     raise error
 
 def lambda_handler(event, context):
   archived_period = _get_env_var_value('ARCHIVED_PERIOD')
   deleted_stacks = _get_deleted_stacks(archived_period)
-  logging.debug(f'SC deleted stacks: {deleted_stacks}')
+  log.debug(f'SC deleted stacks: {deleted_stacks}')
   buckets = _get_buckets()
   for deleted_stack in deleted_stacks:
     for bucket in buckets:
       if deleted_stack['AssociatedResource'] == bucket['Name']:
-        logging.info(f'Clean up bucket {bucket["Name"]} provisioned by '
+        log.info(f'Clean up bucket {bucket["Name"]} provisioned by '
                      f'CFN stack {deleted_stack["StackName"]}')
         _delete_bucket(bucket['Name'])
         break
