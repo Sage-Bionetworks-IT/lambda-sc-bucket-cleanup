@@ -37,7 +37,7 @@ Resources:
     Properties:
       CodeUri: .
       Handler: sc_bucket_cleanup/app.lambda_handler
-      Runtime: python3.8
+      Runtime: python3.11
       Role: !GetAtt FunctionRole.Arn
       Events:
         BucketCleanup:
